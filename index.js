@@ -65,9 +65,33 @@ async function WABot() {
       await client.connect();
       const db = client.db("learning_mongodb");
       const collection = db.collection("jobs");
+      const secondLastDocument = await collection
+        .find({})
+        .sort({ _id: -1 })
+        .skip(1)
+        .limit(1)
+        .toArray();
+      const pld = secondLastDocument[0];
+      // console.log(pld);
+      let temppreviousJob = pld.previousjob;
+      let temppreviousDb = pld.previousdata;
+      let previousJob = temppreviousJob
+        .replace(/<b>/g, "*")
+        .replace(/<\/b>/g, "*")
+        .replace(/<i>/g, "_")
+        .replace(/<\/i>/g, "_")
+        .replace(/\n\n\n/g, "")
+        .replace(/\n\n/g, "\n");
+      let previousDb = temppreviousDb
+        .replace(/<b>/g, "*")
+        .replace(/<\/b>/g, "*")
+        .replace(/<i>/g, "_")
+        .replace(/<\/i>/g, "_")
+        .replace(/\n\n\n/g, "")
+        .replace(/\n\n/g, "\n");
 
-      let previousJob = null,
-        previousDb = null;
+      console.log(previousJob);
+      console.log(previousDb);
       const msg = process.env.GROUPID;
       while (true) {
         const lastDocument = await collection
@@ -78,7 +102,7 @@ async function WABot() {
 
         // console.log("Last Document:", lastDocument[0]);
         const ld = lastDocument[0];
-        console.log(ld);
+        // console.log(ld);
         const tempcurrentJob = ld.previousjob;
         const tempcurrentDb = ld.previousdata;
 
@@ -96,8 +120,8 @@ async function WABot() {
           .replace(/<\/i>/g, "_")
           .replace(/\n\n\n/g, "")
           .replace(/\n\n/g, "\n");
-        console.log("Current Job:", currentJob);
-        console.log("Current Data:", currentDb);
+        // console.log("Current Job:", currentJob);
+        // console.log("Current Data:", currentDb);
         if (currentJob !== previousJob) {
           await handleJobOrDashboard(
             msg,
@@ -105,6 +129,51 @@ async function WABot() {
               currentJob
           );
           previousJob = currentJob;
+          const searchSentence = "Deadline to Apply :";
+          const index = currentJob.indexOf(searchSentence);
+          // console.log(index);
+          const newStr = currentJob.substring(index);
+          // console.log(newStr);
+          const indexn = newStr.indexOf("\n");
+          // console.log(indexn);
+          const DATE = newStr.substring(0, indexn);
+          // console.log(DATE);
+          const idx = DATE.indexOf("_");
+
+          const lidx = DATE.lastIndexOf("_");
+          const dt = DATE.substring(idx + 1, lidx);
+          // console.log(dt);
+          let [day, month, year, hour, minute] = dt.split(/[-: ]/);
+          // console.log(day);
+          const deadline = new Date(
+            `${year}-${month}-${day} ${hour}:${minute}`
+          );
+          const notificationTime = new Date(deadline.getTime() - 60 * 60000); // 60 minutes before deadline
+          const currentTime = new Date();
+
+          const delay = notificationTime.getTime() - currentTime.getTime();
+          // Testing
+          // const notificationTime = new Date(deadline.getTime() - 60 * 60000); // 60 minutes before deadline
+          // const currentTime = new Date(notificationTime.getTime() - 2 * 60000); // 1 minute before notificationTime
+
+          // let delay = notificationTime.getTime() - currentTime.getTime();
+          // delay /= 10;
+          // console.log(delay);
+          const checkNotificationTime = () => {
+            const now = new Date();
+            // console.log(now);
+            // When you are testing go for <=
+            if (now >= notificationTime) {
+              const attentionReply =
+                "🔴 *Attention Deadline Is Approaching*\n------------------------------------------------------------\n" +
+                currentJob;
+              // console.log(attentionReply);
+              sendMessage(msg, { text: attentionReply });
+            } else {
+              setTimeout(checkNotificationTime, 1000);
+            }
+          };
+          setTimeout(checkNotificationTime, delay);
         }
 
         if (currentDb !== previousDb) {
@@ -147,9 +216,9 @@ async function WABot() {
       const { messages } = events["messages.upsert"];
       messages.forEach((msg) => {
         // processing
-        // if (getText(msg.message).startsWith("@hi")) {
-        //   console.log(msg.key.remoteJid);
-        // }
+        if (getText(msg.message).startsWith("@hi")) {
+          console.log(msg.key.remoteJid);
+        }
       });
     }
   });
