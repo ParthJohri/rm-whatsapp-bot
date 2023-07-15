@@ -63,37 +63,48 @@ async function WABot() {
   async function run() {
     try {
       await client.connect();
+      let temppreviousJob = "",
+        temppreviousDb = "",
+        previousJob = "",
+        previousDb = "";
+
       const db = client.db("learning_mongodb");
       const collection = db.collection("jobs");
-      const secondLastDocument = await collection
-        .find({})
-        .sort({ _id: -1 })
-        .skip(1)
-        .limit(1)
-        .toArray();
-      const pld = secondLastDocument[0];
-      // console.log(pld);
-      let temppreviousJob = pld.previousjob;
-      let temppreviousDb = pld.previousdata;
-      let previousJob = temppreviousJob
-        .replace(/<b>/g, "*")
-        .replace(/<\/b>/g, "*")
-        .replace(/<i>/g, "_")
-        .replace(/<\/i>/g, "_")
-        .replace(/\n\n\n/g, "")
-        .replace(/\n\n/g, "\n");
-      let previousDb = temppreviousDb
-        .replace(/<b>/g, "*")
-        .replace(/<\/b>/g, "*")
-        .replace(/<i>/g, "_")
-        .replace(/<\/i>/g, "_")
-        .replace(/\n\n\n/g, "")
-        .replace(/\n\n/g, "\n");
+      if (collection.length > 1) {
+        const secondLastDocument = await collection
+          .find({})
+          .sort({ _id: -1 })
+          .skip(1)
+          .limit(1)
+          .toArray();
+        const pld = secondLastDocument[0];
+        // console.log(pld);
+        temppreviousJob = pld.previousjob;
+        temppreviousDb = pld.previousdata;
+        previousJob = temppreviousJob
+          .replace(/<b>/g, "*")
+          .replace(/<\/b>/g, "*")
+          .replace(/<i>/g, "_")
+          .replace(/<\/i>/g, "_")
+          .replace(/\n\n\n/g, "")
+          .replace(/\n\n/g, "\n");
+        previousDb = temppreviousDb
+          .replace(/<b>/g, "*")
+          .replace(/<\/b>/g, "*")
+          .replace(/<i>/g, "_")
+          .replace(/<\/i>/g, "_")
+          .replace(/\n\n\n/g, "")
+          .replace(/\n\n/g, "\n");
+      }
 
-      console.log(previousJob);
-      console.log(previousDb);
+      // console.log(previousJob);
+      // console.log(previousDb);
       const msg = process.env.GROUPID;
       while (true) {
+        let tempcurrentJob = "",
+          tempcurrentDb = "",
+          currentJob = "",
+          currentDb = "";
         const lastDocument = await collection
           .find({})
           .sort({ _id: -1 })
@@ -101,31 +112,34 @@ async function WABot() {
           .toArray();
 
         // console.log("Last Document:", lastDocument[0]);
-        const ld = lastDocument[0];
-        // console.log(ld);
-        const tempcurrentJob = ld.previousjob;
-        const tempcurrentDb = ld.previousdata;
+        if (lastDocument.length >= 1) {
+          const ld = lastDocument[0];
+          // console.log(ld);
+          tempcurrentJob = ld.previousjob;
+          tempcurrentDb = ld.previousdata;
 
-        const currentJob = tempcurrentJob
-          .replace(/<b>/g, "*")
-          .replace(/<\/b>/g, "*")
-          .replace(/<i>/g, "_")
-          .replace(/<\/i>/g, "_")
-          .replace(/\n\n\n/g, "")
-          .replace(/\n\n/g, "\n");
-        const currentDb = tempcurrentDb
-          .replace(/<b>/g, "*")
-          .replace(/<\/b>/g, "*")
-          .replace(/<i>/g, "_")
-          .replace(/<\/i>/g, "_")
-          .replace(/\n\n\n/g, "")
-          .replace(/\n\n/g, "\n");
+          currentJob = tempcurrentJob
+            .replace(/<b>/g, "*")
+            .replace(/<\/b>/g, "*")
+            .replace(/<i>/g, "_")
+            .replace(/<\/i>/g, "_")
+            .replace(/\n\n\n/g, "")
+            .replace(/\n\n/g, "\n");
+          currentDb = tempcurrentDb
+            .replace(/<b>/g, "*")
+            .replace(/<\/b>/g, "*")
+            .replace(/<i>/g, "_")
+            .replace(/<\/i>/g, "_")
+            .replace(/\n\n\n/g, "")
+            .replace(/\n\n/g, "\n");
+        }
+
         // console.log("Current Job:", currentJob);
         // console.log("Current Data:", currentDb);
         if (currentJob !== previousJob) {
           await handleJobOrDashboard(
             msg,
-            "🔥 New Job Posted 🔥\n-------------------------------------\n" +
+            "💡  *New Job Posted*  💡\n---------------------------------------\n" +
               currentJob
           );
           previousJob = currentJob;
@@ -148,10 +162,21 @@ async function WABot() {
           const deadline = new Date(
             `${year}-${month}-${day} ${hour}:${minute}`
           );
-          const notificationTime = new Date(deadline.getTime() - 60 * 60000); // 60 minutes before deadline
+          const notificationTime = new Date(deadline.getTime() - 720 * 60000); // 60 minutes before deadline
           const currentTime = new Date();
 
           const delay = notificationTime.getTime() - currentTime.getTime();
+          const options = { timeZone: "Asia/Kolkata" };
+          const currentTimeIST = currentTime.toLocaleString("en-US", options);
+          const notificationTimeIST = notificationTime.toLocaleString(
+            "en-US",
+            options
+          );
+          console.log("Notification Time " + notificationTime);
+          console.log("Current Time " + currentTime);
+          console.log("Notification Time(IST): " + notificationTimeIST);
+          console.log("Current Time (IST): " + currentTimeIST);
+          console.log("Delay In Seconds " + delay);
           // Testing
           // const notificationTime = new Date(deadline.getTime() - 60 * 60000); // 60 minutes before deadline
           // const currentTime = new Date(notificationTime.getTime() - 2 * 60000); // 1 minute before notificationTime
@@ -159,6 +184,7 @@ async function WABot() {
           // let delay = notificationTime.getTime() - currentTime.getTime();
           // delay /= 10;
           // console.log(delay);
+
           const checkNotificationTime = () => {
             const now = new Date();
             // console.log(now);
@@ -171,6 +197,8 @@ async function WABot() {
               sendMessage(msg, { text: attentionReply });
             } else {
               setTimeout(checkNotificationTime, 1000);
+              const ch = "Delay left " + delay + "\n";
+              console.log(ch);
             }
           };
           setTimeout(checkNotificationTime, delay);
@@ -179,7 +207,7 @@ async function WABot() {
         if (currentDb !== previousDb) {
           await handleJobOrDashboard(
             msg,
-            "🚀 RM Dashboard 📊\n------------------------------------\n" +
+            "🚀  *RM Dashboard* 🔮\n------------------------------------\n" +
               currentDb
           );
           previousDb = currentDb;
