@@ -2,6 +2,7 @@
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const dotenv = require("dotenv");
 dotenv.config();
+const hashmap = {};
 
 // *!whatsbot
 const makeWASocket = require("@whiskeysockets/baileys").default;
@@ -70,32 +71,30 @@ async function WABot() {
 
       const db = client.db("learning_mongodb");
       const collection = db.collection("jobs");
-      if (collection.length > 1) {
-        const secondLastDocument = await collection
-          .find({})
-          .sort({ _id: -1 })
-          .skip(1)
-          .limit(1)
-          .toArray();
-        const pld = secondLastDocument[0];
-        // console.log(pld);
-        temppreviousJob = pld.previousjob;
-        temppreviousDb = pld.previousdata;
-        previousJob = temppreviousJob
-          .replace(/<b>/g, "*")
-          .replace(/<\/b>/g, "*")
-          .replace(/<i>/g, "_")
-          .replace(/<\/i>/g, "_")
-          .replace(/\n\n\n/g, "")
-          .replace(/\n\n/g, "\n");
-        previousDb = temppreviousDb
-          .replace(/<b>/g, "*")
-          .replace(/<\/b>/g, "*")
-          .replace(/<i>/g, "_")
-          .replace(/<\/i>/g, "_")
-          .replace(/\n\n\n/g, "")
-          .replace(/\n\n/g, "\n");
-      }
+      const secondLastDocument = await collection
+        .find({})
+        .sort({ _id: -1 })
+        .skip(1)
+        .limit(1)
+        .toArray();
+      const pld = secondLastDocument[0];
+      // console.log(pld);
+      temppreviousJob = pld.previousjob;
+      temppreviousDb = pld.previousdata;
+      previousJob = temppreviousJob
+        .replace(/<b>/g, "*")
+        .replace(/<\/b>/g, "*")
+        .replace(/<i>/g, "_")
+        .replace(/<\/i>/g, "_")
+        .replace(/\n\n\n/g, "")
+        .replace(/\n\n/g, "\n");
+      previousDb = temppreviousDb
+        .replace(/<b>/g, "*")
+        .replace(/<\/b>/g, "*")
+        .replace(/<i>/g, "_")
+        .replace(/<\/i>/g, "_")
+        .replace(/\n\n\n/g, "")
+        .replace(/\n\n/g, "\n");
 
       // console.log(previousJob);
       // console.log(previousDb);
@@ -112,37 +111,37 @@ async function WABot() {
           .toArray();
 
         // console.log("Last Document:", lastDocument[0]);
-        if (lastDocument.length >= 1) {
-          const ld = lastDocument[0];
-          // console.log(ld);
-          tempcurrentJob = ld.previousjob;
-          tempcurrentDb = ld.previousdata;
+        const ld = lastDocument[0];
+        // console.log(ld);
+        tempcurrentJob = ld.previousjob;
+        tempcurrentDb = ld.previousdata;
 
-          currentJob = tempcurrentJob
-            .replace(/<b>/g, "*")
-            .replace(/<\/b>/g, "*")
-            .replace(/<i>/g, "_")
-            .replace(/<\/i>/g, "_")
-            .replace(/\n\n\n/g, "")
-            .replace(/\n\n/g, "\n");
-          currentDb = tempcurrentDb
-            .replace(/<b>/g, "*")
-            .replace(/<\/b>/g, "*")
-            .replace(/<i>/g, "_")
-            .replace(/<\/i>/g, "_")
-            .replace(/\n\n\n/g, "")
-            .replace(/\n\n/g, "\n");
-        }
+        currentJob = tempcurrentJob
+          .replace(/<b>/g, "*")
+          .replace(/<\/b>/g, "*")
+          .replace(/<i>/g, "_")
+          .replace(/<\/i>/g, "_")
+          .replace(/\n\n\n/g, "")
+          .replace(/\n\n/g, "\n");
+        currentDb = tempcurrentDb
+          .replace(/<b>/g, "*")
+          .replace(/<\/b>/g, "*")
+          .replace(/<i>/g, "_")
+          .replace(/<\/i>/g, "_")
+          .replace(/\n\n\n/g, "")
+          .replace(/\n\n/g, "\n");
 
         // console.log("Current Job:", currentJob);
         // console.log("Current Data:", currentDb);
-        if (currentJob !== previousJob) {
+        if (hashmap[currentJob] !== 1 && currentJob !== previousJob) {
           await handleJobOrDashboard(
             msg,
             "💡  *New Job Posted*  💡\n---------------------------------------\n" +
               currentJob
           );
           previousJob = currentJob;
+          hashmap[currentJob] = 1;
+
           const searchSentence = "Deadline to Apply :";
           const index = currentJob.indexOf(searchSentence);
           // console.log(index);
@@ -162,7 +161,7 @@ async function WABot() {
           const deadline = new Date(
             `${year}-${month}-${day} ${hour}:${minute}`
           );
-          const notificationTime = new Date(deadline.getTime() - 720 * 60000); // 60 minutes before deadline
+          const notificationTime = new Date(deadline.getTime() - 540 * 60000); // 60 minutes before deadline
           const currentTime = new Date();
 
           const delay = notificationTime.getTime() - currentTime.getTime();
