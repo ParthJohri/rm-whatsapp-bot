@@ -1,4 +1,4 @@
-# RM Bot - WhatsApp Job Notification Bot 🌟📱💼
+# RM Bot - WhatsApp Job Notification Bot 💼
 
 Welcome to the RM Bot - your ultimate companion for job hunting on WhatsApp! 🎉🤖
 
@@ -13,6 +13,12 @@ Unleash the power of RM Bot and stay one step ahead in the competitive job marke
 🌟 **Career Boost**: Let RM Bot be your trusted companion on your journey to success. Whether you're a fresh graduate, experienced professional, or career changer, our bot is here to empower you with valuable job insights and opportunities.
 
 📱 **Connect and Apply**: Take action right from your WhatsApp! Apply for jobs with ease, directly from your device. Save time and effort as you pursue your dream career.
+
+## Screenshots
+
+|      **New Job Notification**      |     **Dashboard Update**      |      **Offcampus Job Notification**      |
+|-------------------------|-----------------------|-------------------------|
+| ![New Job Notification](./rmNotices/NewJob.jpeg) | ![Dashboard Update](./rmNotices/Dashboard.jpeg) | ![Offcampus Job Notification](./rmNotices/Offcampus.jpeg) |
 
 ## Deployment Procedure using AWS EC2 🚀
 
